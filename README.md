@@ -1,3 +1,16 @@
+# nms-ts
+
+TypeScript version of Node-Media-Server https://github.com/illuspas/Node-Media-Server .
+
+## Notable Changes from Node-Media-Server
+
+- HTTP API and Admin Panel has been removed. Please implement yourself.
+- HTTPS/WSS support has been dropped. Please use reverse-proxy (like nginx) instead.
+
+---
+
+here's original README (but description of removed features has removed):
+
 # Node-Media-Server
 [![npm](https://img.shields.io/node/v/node-media-server.svg)](https://nodejs.org/en/)
 [![npm](https://img.shields.io/npm/v/node-media-server.svg)](https://npmjs.org/package/node-media-server)
@@ -16,15 +29,6 @@ A Node.js implementation of RTMP/HTTP-FLV/WS-FLV/HLS/DASH Media Server
 # NMSv3
 https://github.com/NodeMedia/NodeMediaServer
 
-# Web Admin Panel Source
-[https://github.com/illuspas/Node-Media-Server-Admin](https://github.com/illuspas/Node-Media-Server-Admin)
-
-# Web Admin Panel Screenshot
-[http://server_ip:8000/admin](http://server_ip:8000/admin)
-
-![admin](https://raw.githubusercontent.com/illuspas/resources/master/img/admin_panel_dashboard.png)
-![preview](https://raw.githubusercontent.com/illuspas/resources/master/img/admin_panel_streams_preview.png)
-
 # Features
  - Cross platform support Windows/Linux/Unix
  - Support H.264/H.265/AAC/MP3/SPEEX/NELLYMOSER/G.711
@@ -34,10 +38,8 @@ https://github.com/NodeMedia/NodeMediaServer
  - Support remux to HLS/DASH/MP4
  - Support xycdn style authentication
  - Support event callback
- - Support https/wss
  - Support Server Monitor
  - Support Rtsp/Rtmp relay
- - Support api control relay
   
 # Usage 
 ## docker version (only_linux_x64)
@@ -303,188 +305,6 @@ nms.on('donePlay', (id, StreamPath, args) => {
   console.log('[NodeEvent on donePlay]', `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`);
 });
 ```
-# Https/Wss
-
-## Generate certificate
-```bash
-openssl genrsa -out privatekey.pem 1024
-openssl req -new -key privatekey.pem -out certrequest.csr 
-openssl x509 -req -in certrequest.csr -signkey privatekey.pem -out certificate.pem
-```
-
-## Config https
-```js
-import NodeMediaServer from 'node-media-server';
-
-const config = {
-  rtmp: {
-    port: 1935,
-    chunk_size: 60000,
-    gop_cache: true,
-    ping: 30,
-    ping_timeout: 60
-  },
-  http: {
-    port: 8000,
-    allow_origin: '*'
-  },
-  https: {
-    port: 8443,
-    key:'./privatekey.pem',
-    cert:'./certificate.pem',
-  }
-};
-
-
-var nms = new NodeMediaServer(config)
-nms.run();
-```
-## Accessing
-```
-https://localhost:8443/live/STREAM_NAME.flv
-wss://localhost:8443/live/STREAM_NAME.flv
-```
->In the browser environment, Self-signed certificates need to be added with trust before they can be accessed.
-
-# API 
-## Protected API 
-```
-const config = {
- .......
-   auth: {
-    api : true,
-    api_user: 'admin',
-    api_pass: 'nms2018',
-  },
- 
- ......
-}
-```
->Based on the basic auth，Please change your password.
->The default is not turned on
-
-## Server stats
-http://localhost:8000/api/server
-
-```json
-{
-  "os": {
-    "arch": "x64",
-    "platform": "darwin",
-    "release": "16.7.0"
-  },
-  "cpu": {
-    "num": 8,
-    "load": 12,
-    "model": "Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz",
-    "speed": 3592
-  },
-  "mem": {
-    "totle": 8589934592,
-    "free": 754126848
-  },
-  "net": {
-    "inbytes": 6402345,
-    "outbytes": 6901489
-  },
-  "nodejs": {
-    "uptime": 109,
-    "version": "v8.9.0",
-    "mem": {
-      "rss": 59998208,
-      "heapTotal": 23478272,
-      "heapUsed": 15818096,
-      "external": 3556366
-    }
-  },
-  "clients": {
-    "accepted": 207,
-    "active": 204,
-    "idle": 0,
-    "rtmp": 203,
-    "http": 1,
-    "ws": 0
-  }
-}
-```
-
-## Streams stats
-http://localhost:8000/api/streams
-
-```json
-{
-  "live": {
-    "s": {
-      "publisher": {
-        "app": "live",
-        "stream": "s",
-        "clientId": "U3UYQ02P",
-        "connectCreated": "2017-12-21T02:29:13.594Z",
-        "bytes": 190279524,
-        "ip": "::1",
-        "audio": {
-          "codec": "AAC",
-          "profile": "LC",
-          "samplerate": 48000,
-          "channels": 6
-        },
-        "video": {
-          "codec": "H264",
-          "width": 1920,
-          "height": 1080,
-          "profile": "Main",
-          "level": 4.1,
-          "fps": 24
-        }
-      },
-      "subscribers": [
-        {
-          "app": "live",
-          "stream": "s",
-          "clientId": "H227P4IR",
-          "connectCreated": "2017-12-21T02:31:35.278Z",
-          "bytes": 18591846,
-          "ip": "::ffff:127.0.0.1",
-          "protocol": "http"
-        },
-        {
-          "app": "live",
-          "stream": "s",
-          "clientId": "ZNULPE9K",
-          "connectCreated": "2017-12-21T02:31:45.394Z",
-          "bytes": 8744478,
-          "ip": "::ffff:127.0.0.1",
-          "protocol": "ws"
-        },
-        {
-          "app": "live",
-          "stream": "s",
-          "clientId": "C5G8NJ30",
-          "connectCreated": "2017-12-21T02:31:51.736Z",
-          "bytes": 2046073,
-          "ip": "::ffff:192.168.0.91",
-          "protocol": "rtmp"
-        }
-      ]
-    },
-    "stream": {
-      "publisher": null,
-      "subscribers": [
-        {
-          "app": "live",
-          "stream": "stream",
-          "clientId": "KBH4PCWB",
-          "connectCreated": "2017-12-21T02:31:30.245Z",
-          "bytes": 0,
-          "ip": "::ffff:127.0.0.1",
-          "protocol": "http"
-        }
-      ]
-    }
-  }
-}
-```
-
 # Remux to HLS/DASH live stream
 ```js
 import NodeMediaServer from 'node-media-server';
