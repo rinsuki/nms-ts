@@ -5,16 +5,17 @@
 //
 import { Logger } from '../core/logger';
 
-import EventEmitter from 'events';
-import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import dateFormat from 'dateformat';
 import mkdirp from 'mkdirp';
 import fs from 'fs';
 
-class NodeFissionSession extends EventEmitter {
-  constructor(conf) {
+export class FissionSession extends EventEmitter {
+  ffmpeg_exec!: ChildProcessWithoutNullStreams
+
+  constructor(public conf) {
     super();
-    this.conf = conf;
   }
 
   run() {
@@ -53,5 +54,3 @@ class NodeFissionSession extends EventEmitter {
     this.ffmpeg_exec.kill();
   }
 }
-
-module.exports = NodeFissionSession;

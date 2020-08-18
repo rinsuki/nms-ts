@@ -5,17 +5,16 @@
 //
 import { Logger } from '../core/logger';
 
-import NodeFissionSession from './fission_session';
-import context from './core_ctx';
+import { FissionSession } from './session';
+import { context } from '../core/ctx';
 import { getFFmpegVersion, getFFmpegUrl } from './core_utils';
 import fs from 'fs';
 import _ from 'lodash';
 import mkdirp from 'mkdirp';
 
 class NodeFissionServer {
-  constructor(config) {
-    this.config = config;
-    this.fissionSessions = new Map();
+  fissionSessions = new Map();
+  constructor(public config) {
   }
 
   async run() {
@@ -65,7 +64,7 @@ class NodeFissionServer {
         conf.streamApp = app;
         conf.streamName = name;
         conf.args = args;
-        let session = new NodeFissionSession(conf);
+        let session = new FissionSession(conf);
         this.fissionSessions.set(id, session);
         session.on('end', () => {
           this.fissionSessions.delete(id);
