@@ -5,7 +5,7 @@
 //
 
 import Https from 'https';
-import Logger from './core_logger';
+import { Logger } from './core/logger';
 import NodeRtmpServer from './rtmp_server';
 import NodeHttpServer from './http_server';
 import NodeTransServer from './trans_server';

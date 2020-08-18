@@ -5,7 +5,7 @@
 //
 import URL from "url";
 import AMF from "./core_amf";
-import Logger from "./core_logger";
+import { Logger } from "./core/logger";
 import context from "./core_ctx";
 import NodeCoreUtils from "./core_utils";
 

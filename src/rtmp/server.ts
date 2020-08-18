@@ -3,7 +3,7 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-import Logger from './core_logger';
+import { Logger } from '../core/logger';
 
 import Net from 'net';
 import NodeRtmpSession from './rtmp_session';

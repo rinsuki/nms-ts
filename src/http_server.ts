@@ -17,7 +17,7 @@ import NodeFlvSession from './flv_session';
 const HTTP_PORT = 80;
 const HTTPS_PORT = 443;
 const HTTP_MEDIAROOT = './media';
-import Logger from './core_logger';
+import { Logger } from './core/logger';
 import context from './core_ctx';
 
 import streamsRoute from './api/routes/streams';

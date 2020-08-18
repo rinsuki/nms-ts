@@ -13,7 +13,7 @@ import Handshake from "./rtmp_handshake";
 import NodeCoreUtils from "./core_utils";
 import NodeFlvSession from "./flv_session";
 import context from "./core_ctx";
-import Logger from "./core_logger";
+import { Logger } from "../core/logger";
 
 const N_CHUNK_STREAM = 8;
 const RTMP_VERSION = 3;

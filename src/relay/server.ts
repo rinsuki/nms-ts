@@ -3,7 +3,7 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-import Logger from './core_logger';
+import { Logger } from '../core/logger';
 
 import NodeCoreUtils from './core_utils';
 import NodeRelaySession from './relay_session';

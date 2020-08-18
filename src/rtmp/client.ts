@@ -5,7 +5,7 @@
 //
 
 import EventEmitter from 'events';
-import Logger from './core_logger';
+import { Logger } from '../core/logger';
 import Crypto from 'crypto';
 import Url from 'url';
 import Net from 'net';

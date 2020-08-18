@@ -3,7 +3,7 @@
 //  illuspas[a]msn.com
 //  Copyright (c) 2020 Nodemedia. All rights reserved.
 //
-import Logger from './core_logger';
+import { Logger } from '../core/logger';
 
 import EventEmitter from 'events';
 import { spawn } from 'child_process';

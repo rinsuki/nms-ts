@@ -2,7 +2,7 @@
  * Created by delian on 3/12/14.
  * This module provides encoding and decoding of the AMF0 and AMF3 format
  */
-import Logger from './core_logger';
+import { Logger } from './logger';
 
 const amf3dRules = {
   0x00: amf3decUndefined,

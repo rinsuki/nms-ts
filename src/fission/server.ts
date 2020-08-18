@@ -3,7 +3,7 @@
 //  illuspas[a]msn.com
 //  Copyright (c) 2020 Nodemedia. All rights reserved.
 //
-import Logger from './core_logger';
+import { Logger } from '../core/logger';
 
 import NodeFissionSession from './fission_session';
 import context from './core_ctx';
