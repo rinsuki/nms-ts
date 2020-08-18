@@ -5,18 +5,30 @@
 //
 import { Logger } from '../core/logger';
 
-import Net from 'net';
-import NodeRtmpSession from './rtmp_session';
-import NodeCoreUtils from './core_utils';
+import { Server, createServer } from 'net';
+import NodeRtmpSession from './session';
 
-import context from './core_ctx';
+import { context } from '../core/ctx';
 
-const RTMP_PORT = 1935;
+export interface RTMPServerConfig {
+  port?: number
+  chunk_size?: number
+  ping?: number
+  ping_timeout?: number
+  gop_cache: boolean
+}
 
-class NodeRtmpServer {
-  constructor(config) {
-    config.rtmp.port = this.port = config.rtmp.port ? config.rtmp.port : RTMP_PORT;
-    this.tcpServer = Net.createServer((socket) => {
+export class RTMPServer {
+  tcpServer: Server
+  port: number = 1935
+  
+  constructor(config: RTMPServerConfig) {
+    if (config.port != null) {
+      this.port = config.port
+    } else {
+      config.port = this.port
+    }
+    this.tcpServer = createServer((socket) => {
       let session = new NodeRtmpSession(config, socket);
       session.run();
     })
@@ -44,5 +56,3 @@ class NodeRtmpServer {
     });
   }
 }
-
-module.exports = NodeRtmpServer

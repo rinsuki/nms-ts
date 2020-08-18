@@ -3,15 +3,16 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 
-let sessions = new Map();
-let publishers = new Map();
-let idlePlayers = new Set();
-let nodeEvent = new EventEmitter();
-let stat = {
-  inbytes: 0,
-  outbytes: 0,
-  accepted: 0
+export const context = {
+  sessions: new Map(),
+  publishers: new Map(),
+  idlePlayers: new Set(),
+  nodeEvent: new EventEmitter(),
+  stat: {
+    inbytes: 0,
+    outbytes: 0,
+    accepted: 0
+  }
 };
-module.exports = { sessions, publishers, idlePlayers, nodeEvent, stat };

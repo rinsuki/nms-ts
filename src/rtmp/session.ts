@@ -5,15 +5,17 @@
 //
 
 import QueryString from "querystring";
-import AV from "./core_av";
-import { AUDIO_SOUND_RATE, AUDIO_CODEC_NAME, VIDEO_CODEC_NAME } from "./core_av";
+import AV from "../core/av";
+import { AUDIO_SOUND_RATE, AUDIO_CODEC_NAME, VIDEO_CODEC_NAME } from "../core/av";
 
-import AMF from "./core_amf";
-import Handshake from "./rtmp_handshake";
-import NodeCoreUtils from "./core_utils";
-import NodeFlvSession from "./flv_session";
-import context from "./core_ctx";
+import AMF from "../core/amf";
+import Handshake from "./handshake";
+import NodeCoreUtils from "../core/utils";
+import NodeFlvSession from "../flv/session";
+import { context } from "../core/ctx";
 import { Logger } from "../core/logger";
+import { RTMPServerConfig } from "./server";
+import { Socket } from "net";
 
 const N_CHUNK_STREAM = 8;
 const RTMP_VERSION = 3;
@@ -82,96 +84,102 @@ const STREAM_DRY = 0x02;
 const STREAM_EMPTY = 0x1f;
 const STREAM_READY = 0x20;
 
-const RtmpPacket = {
-  create: (fmt = 0, cid = 0) => {
-    return {
-      header: {
-        fmt: fmt,
-        cid: cid,
-        timestamp: 0,
-        length: 0,
-        type: 0,
-        stream_id: 0
-      },
-      clock: 0,
-      payload: null,
-      capacity: 0,
-      bytes: 0
-    };
-  }
-};
+function createRTMPPacket(fmt = 0, cid = 0) {
+  return {
+    header: {
+      fmt: fmt,
+      cid: cid,
+      timestamp: 0,
+      length: 0,
+      type: 0,
+      stream_id: 0
+    },
+    clock: 0,
+    payload: null,
+    capacity: 0,
+    bytes: 0
+  };
+}
 
-class NodeRtmpSession {
-  constructor(config, socket) {
-    this.config = config;
-    this.socket = socket;
+
+export class RTMPSession {
+  res: Socket
+  id = NodeCoreUtils.generateNewSessionID()
+  ip?: string
+  TAG = "rtmp"
+
+  handshakePayload = Buffer.alloc(RTMP_HANDSHAKE_SIZE)
+  handshakeState = RTMP_HANDSHAKE_UNINIT
+  handshakeBytes = 0
+
+  parserBuffer = Buffer.alloc(MAX_CHUNK_HEADER);
+  parserState = RTMP_PARSE_INIT;
+  parserBytes = 0;
+  parserBasicBytes = 0;
+  parserPacket = null;
+  inPackets = new Map();
+
+  inChunkSize = RTMP_CHUNK_SIZE;
+  outChunkSize: number
+  pingTime = RTMP_PING_TIME;
+  pingTimeout = RTMP_PING_TIMEOUT;
+  pingInterval: NodeJS.Timer | null = null;
+
+  isLocal = this.ip === "127.0.0.1" || this.ip === "::1" || this.ip == "::ffff:127.0.0.1";
+  isStarting = false;
+  isPublishing = false;
+  isPlaying = false;
+  isIdling = false;
+  isPause = false;
+  isReceiveAudio = true;
+  isReceiveVideo = true;
+  metaData = null;
+  aacSequenceHeader = null;
+  avcSequenceHeader = null;
+  audioCodec = 0;
+  audioCodecName = "";
+  audioProfileName = "";
+  audioSamplerate = 0;
+  audioChannels = 1;
+  videoCodec = 0;
+  videoCodecName = "";
+  videoProfileName = "";
+  videoWidth = 0;
+  videoHeight = 0;
+  videoFps = 0;
+  videoLevel = 0;
+
+  gopCacheEnable: boolean;
+  rtmpGopCacheQueue = null;
+  flvGopCacheQueue = null;
+
+  ackSize = 0;
+  inAckSize = 0;
+  inLastAck = 0;
+
+  appname = "";
+  streams = 0;
+
+  playStreamId = 0;
+  playStreamPath = "";
+  playArgs = {};
+
+  publishStreamId = 0;
+  publishStreamPath = "";
+  publishArgs = {};
+
+  players = new Set();
+  numPlayCache = 0;
+
+  constructor(public config: RTMPServerConfig, public socket: Socket) {
     this.res = socket;
-    this.id = NodeCoreUtils.generateNewSessionID();
     this.ip = socket.remoteAddress;
-    this.TAG = "rtmp";
 
-    this.handshakePayload = Buffer.alloc(RTMP_HANDSHAKE_SIZE);
-    this.handshakeState = RTMP_HANDSHAKE_UNINIT;
-    this.handshakeBytes = 0;
-
-    this.parserBuffer = Buffer.alloc(MAX_CHUNK_HEADER);
-    this.parserState = RTMP_PARSE_INIT;
-    this.parserBytes = 0;
-    this.parserBasicBytes = 0;
-    this.parserPacket = null;
-    this.inPackets = new Map();
-
-    this.inChunkSize = RTMP_CHUNK_SIZE;
-    this.outChunkSize = config.rtmp.chunk_size ? config.rtmp.chunk_size : RTMP_CHUNK_SIZE;
-    this.pingTime = config.rtmp.ping ? config.rtmp.ping * 1000 : RTMP_PING_TIME;
-    this.pingTimeout = config.rtmp.ping_timeout ? config.rtmp.ping_timeout * 1000 : RTMP_PING_TIMEOUT;
-    this.pingInterval = null;
-
-    this.isLocal = this.ip === "127.0.0.1" || this.ip === "::1" || this.ip == "::ffff:127.0.0.1";
-    this.isStarting = false;
-    this.isPublishing = false;
-    this.isPlaying = false;
-    this.isIdling = false;
-    this.isPause = false;
-    this.isReceiveAudio = true;
-    this.isReceiveVideo = true;
-    this.metaData = null;
-    this.aacSequenceHeader = null;
-    this.avcSequenceHeader = null;
-    this.audioCodec = 0;
-    this.audioCodecName = "";
-    this.audioProfileName = "";
-    this.audioSamplerate = 0;
-    this.audioChannels = 1;
-    this.videoCodec = 0;
-    this.videoCodecName = "";
-    this.videoProfileName = "";
-    this.videoWidth = 0;
-    this.videoHeight = 0;
-    this.videoFps = 0;
-    this.videoLevel = 0;
-
-    this.gopCacheEnable = config.rtmp.gop_cache;
-    this.rtmpGopCacheQueue = null;
-    this.flvGopCacheQueue = null;
-
-    this.ackSize = 0;
-    this.inAckSize = 0;
-    this.inLastAck = 0;
-
-    this.appname = "";
-    this.streams = 0;
-
-    this.playStreamId = 0;
-    this.playStreamPath = "";
-    this.playArgs = {};
-
-    this.publishStreamId = 0;
-    this.publishStreamPath = "";
-    this.publishArgs = {};
-
-    this.players = new Set();
-    this.numPlayCache = 0;
+    this.outChunkSize = config.chunk_size ? config.chunk_size : RTMP_CHUNK_SIZE;
+    if (config.ping != null) this.pingTime = config.ping * 1000
+    if (config.ping_timeout != null) this.pingTimeout = config.ping_timeout * 1000
+  
+    this.gopCacheEnable = config.gop_cache
     context.sessions.set(this.id, this);
   }
 
@@ -486,7 +494,7 @@ class NodeRtmpSession {
     }
     let hasp = this.inPackets.has(cid);
     if (!hasp) {
-      this.parserPacket = RtmpPacket.create(fmt, cid);
+      this.parserPacket = createRTMPPacket(fmt, cid);
       this.inPackets.set(cid, this.parserPacket);
     } else {
       this.parserPacket = this.inPackets.get(cid);
@@ -628,7 +636,7 @@ class NodeRtmpSession {
       );
     }
 
-    let packet = RtmpPacket.create();
+    let packet = createRTMPPacket();
     packet.header.fmt = RTMP_CHUNK_TYPE_0;
     packet.header.cid = RTMP_CHANNEL_AUDIO;
     packet.header.type = RTMP_TYPE_AUDIO;
@@ -706,7 +714,7 @@ class NodeRtmpSession {
       );
     }
 
-    let packet = RtmpPacket.create();
+    let packet = createRTMPPacket();
     packet.header.fmt = RTMP_CHUNK_TYPE_0;
     packet.header.cid = RTMP_CHANNEL_VIDEO;
     packet.header.type = RTMP_TYPE_VIDEO;
@@ -778,7 +786,7 @@ class NodeRtmpSession {
         };
         this.metaData = AMF.encodeAmf0Data(opt);
 
-        let packet = RtmpPacket.create();
+        let packet = createRTMPPacket();
         packet.header.fmt = RTMP_CHUNK_TYPE_0;
         packet.header.cid = RTMP_CHANNEL_DATA;
         packet.header.type = RTMP_TYPE_DATA;
@@ -879,7 +887,7 @@ class NodeRtmpSession {
   }
 
   sendInvokeMessage(sid, opt) {
-    let packet = RtmpPacket.create();
+    let packet = createRTMPPacket();
     packet.header.fmt = RTMP_CHUNK_TYPE_0;
     packet.header.cid = RTMP_CHANNEL_INVOKE;
     packet.header.type = RTMP_TYPE_INVOKE;
@@ -891,7 +899,7 @@ class NodeRtmpSession {
   }
 
   sendDataMessage(opt, sid) {
-    let packet = RtmpPacket.create();
+    let packet = createRTMPPacket();
     packet.header.fmt = RTMP_CHUNK_TYPE_0;
     packet.header.cid = RTMP_CHANNEL_DATA;
     packet.header.type = RTMP_TYPE_DATA;
@@ -927,7 +935,7 @@ class NodeRtmpSession {
 
   sendPingRequest() {
     let currentTimestamp = Date.now() - this.startTimestamp;
-    let packet = RtmpPacket.create();
+    let packet = createRTMPPacket();
     packet.header.fmt = RTMP_CHUNK_TYPE_0;
     packet.header.cid = RTMP_CHANNEL_PROTOCOL;
     packet.header.type = RTMP_TYPE_EVENT;
@@ -1089,7 +1097,7 @@ class NodeRtmpSession {
     players.add(this.id);
 
     if (publisher.metaData != null) {
-      let packet = RtmpPacket.create();
+      let packet = createRTMPPacket();
       packet.header.fmt = RTMP_CHUNK_TYPE_0;
       packet.header.cid = RTMP_CHANNEL_DATA;
       packet.header.type = RTMP_TYPE_DATA;
@@ -1101,7 +1109,7 @@ class NodeRtmpSession {
     }
 
     if (publisher.audioCodec === 10) {
-      let packet = RtmpPacket.create();
+      let packet = createRTMPPacket();
       packet.header.fmt = RTMP_CHUNK_TYPE_0;
       packet.header.cid = RTMP_CHANNEL_AUDIO;
       packet.header.type = RTMP_TYPE_AUDIO;
@@ -1113,7 +1121,7 @@ class NodeRtmpSession {
     }
 
     if (publisher.videoCodec === 7 || publisher.videoCodec === 12) {
-      let packet = RtmpPacket.create();
+      let packet = createRTMPPacket();
       packet.header.fmt = RTMP_CHUNK_TYPE_0;
       packet.header.cid = RTMP_CHANNEL_VIDEO;
       packet.header.type = RTMP_TYPE_VIDEO;
@@ -1150,7 +1158,7 @@ class NodeRtmpSession {
         let publisher = context.sessions.get(publisherId);
         let players = publisher.players;
         if (publisher.audioCodec === 10) {
-          let packet = RtmpPacket.create();
+          let packet = createRTMPPacket();
           packet.header.fmt = RTMP_CHUNK_TYPE_0;
           packet.header.cid = RTMP_CHANNEL_AUDIO;
           packet.header.type = RTMP_TYPE_AUDIO;
@@ -1162,7 +1170,7 @@ class NodeRtmpSession {
           this.socket.write(chunks);
         }
         if (publisher.videoCodec === 7 || publisher.videoCodec === 12) {
-          let packet = RtmpPacket.create();
+          let packet = createRTMPPacket();
           packet.header.fmt = RTMP_CHUNK_TYPE_0;
           packet.header.cid = RTMP_CHANNEL_VIDEO;
           packet.header.type = RTMP_TYPE_VIDEO;

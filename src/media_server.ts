@@ -5,8 +5,8 @@
 //
 
 import Https from 'https';
-import { Logger } from './core/logger';
-import NodeRtmpServer from './rtmp_server';
+import { Logger, LOG_TYPES } from './core/logger';
+import { RTMPServer, RTMPServerConfig } from './rtmp/server';
 import NodeHttpServer from './http_server';
 import NodeTransServer from './trans_server';
 import NodeRelayServer from './relay_server';
@@ -14,16 +14,26 @@ import NodeFissionServer from './fission_server';
 import context from './core_ctx';
 import Package from "./package.json";
 
-class NodeMediaServer {
-  constructor(config) {
-    this.config = config;
+export interface MediaServerConfig {
+  logType: LOG_TYPES
+  rtmp?: RTMPServerConfig
+  http: {
+
+  }
+}
+
+export class MediaServer {
+  nrs!: NodeRtmpServer
+  nhs!: NodeHttpServer
+
+  constructor(public config: MediaServerConfig) {
   }
 
   run() {
-    Logger.setLogType(this.config.logType);
+    Logger.level = this.config.logType;
     Logger.log(`Node Media Server v${Package.version}`);
     if (this.config.rtmp) {
-      this.nrs = new NodeRtmpServer(this.config);
+      this.nrs = new NodeRtmpServer(this.config.rtmp);
       this.nrs.run();
     }
 
@@ -107,5 +117,3 @@ class NodeMediaServer {
     return context.sessions.get(id);
   }
 }
-
-module.exports = NodeMediaServer
