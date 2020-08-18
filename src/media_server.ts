@@ -6,7 +6,7 @@
 
 import { Logger, LOG_TYPES } from './core/logger';
 import { RTMPServer, RTMPServerConfig } from './rtmp/server';
-import NodeHttpServer from './http_server';
+import NodeHttpServer, { HTTPServerConfig } from './http_server';
 import NodeTransServer from './trans_server';
 import NodeRelayServer from './relay_server';
 import NodeFissionServer from './fission_server';
@@ -16,9 +16,7 @@ import { checkPropertyIsNonNull } from './core/utils';
 export interface MediaServerConfig {
   logType: LOG_TYPES
   rtmp?: RTMPServerConfig
-  http: {
-
-  }
+  http?: HTTPServerConfig
 }
 
 export class MediaServer {
