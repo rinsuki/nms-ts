@@ -23,7 +23,7 @@ export interface MediaServerConfig {
 }
 
 export class MediaServer {
-  nrs!: NodeRtmpServer
+  nrs!: RTMPServer
   nhs!: NodeHttpServer
 
   constructor(public config: MediaServerConfig) {
@@ -33,7 +33,7 @@ export class MediaServer {
     Logger.level = this.config.logType;
     Logger.log(`Node Media Server v${Package.version}`);
     if (this.config.rtmp) {
-      this.nrs = new NodeRtmpServer(this.config.rtmp);
+      this.nrs = new RTMPServer(this.config.rtmp);
       this.nrs.run();
     }
 
