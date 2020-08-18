@@ -11,6 +11,7 @@ import NodeTransServer from './trans_server';
 import NodeRelayServer from './relay_server';
 import NodeFissionServer from './fission_server';
 import context from './core_ctx';
+import { checkPropertyIsNonNull } from './core/utils';
 
 export interface MediaServerConfig {
   logType: LOG_TYPES
@@ -30,12 +31,12 @@ export class MediaServer {
   run() {
     Logger.level = this.config.logType;
     Logger.log(`Node Media Server`);
-    if (this.config.rtmp) {
-      this.nrs = new RTMPServer(this.config.rtmp);
+    if (checkPropertyIsNonNull(this.config, "rtmp")) {
+      this.nrs = new RTMPServer(this.config);
       this.nrs.run();
     }
 
-    if (this.config.http) {
+    if (checkPropertyIsNonNull(this.config, "http")) {
       this.nhs = new NodeHttpServer(this.config);
       this.nhs.run();
     }

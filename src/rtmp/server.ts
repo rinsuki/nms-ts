@@ -6,9 +6,11 @@
 import { Logger } from '../core/logger';
 
 import { Server, createServer } from 'net';
-import NodeRtmpSession from './session';
+import { RTMPSession } from './session';
 
 import { context } from '../core/ctx';
+import { MediaServerConfig } from '../media_server';
+import { NonNullableProperty } from '../core/utils';
 
 export interface RTMPServerConfig {
   port?: number
@@ -18,18 +20,20 @@ export interface RTMPServerConfig {
   gop_cache: boolean
 }
 
+export type MediaServerConfigWithRTMP = NonNullableProperty<MediaServerConfig, "rtmp">
+
 export class RTMPServer {
   tcpServer: Server
   port: number = 1935
   
-  constructor(config: RTMPServerConfig) {
-    if (config.port != null) {
-      this.port = config.port
+  constructor(config: MediaServerConfigWithRTMP) {
+    if (config.rtmp.port != null) {
+      this.port = config.rtmp.port
     } else {
-      config.port = this.port
+      config.rtmp.port = this.port
     }
     this.tcpServer = createServer((socket) => {
-      let session = new NodeRtmpSession(config, socket);
+      let session = new RTMPSession(config, socket);
       session.run();
     })
   }

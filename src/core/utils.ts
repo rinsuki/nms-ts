@@ -4,12 +4,10 @@
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
 import Crypto from 'crypto';
-import EventEmitter from 'events';
 import { spawn } from 'child_process';
-import readline from 'readline';
-import context from './core_ctx';
+import { context } from './ctx';
 
-function generateNewSessionID() {
+export function generateNewSessionID() {
   let sessionID = '';
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWKYZ0123456789';
   const numPossible = possible.length;
@@ -21,7 +19,7 @@ function generateNewSessionID() {
   return sessionID;
 }
 
-function genRandomName() {
+export function genRandomName() {
   let name = '';
   const possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
   const numPossible = possible.length;
@@ -32,7 +30,7 @@ function genRandomName() {
   return name;
 }
 
-function verifyAuth(signStr, streamId, secretKey) {
+export function verifyAuth(signStr: string, streamId: string, secretKey: string) {
   if (signStr === undefined) {
     return false;
   }
@@ -48,8 +46,8 @@ function verifyAuth(signStr, streamId, secretKey) {
   return shv === ohv;
 }
 
-function getFFmpegVersion(ffpath) {
-  return new Promise((resolve, reject) => {
+export function getFFmpegVersion(ffpath: string) {
+  return new Promise<string>((resolve, reject) => {
     let ffmpeg_exec = spawn(ffpath, ['-version']);
     let version = '';
     ffmpeg_exec.on('error', (e) => {
@@ -67,29 +65,22 @@ function getFFmpegVersion(ffpath) {
   });
 }
 
-function getFFmpegUrl() {
-  let url = '';
+export function getFFmpegUrl(): string {
   switch (process.platform) {
     case 'darwin':
-      url = 'https://ffmpeg.zeranoe.com/builds/macos64/static/ffmpeg-latest-macos64-static.zip';
-      break;
+      return 'https://ffmpeg.zeranoe.com/builds/macos64/static/ffmpeg-latest-macos64-static.zip';
     case 'win32':
-      url = 'https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-latest-win64-static.zip | https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-latest-win32-static.zip';
-      break;
+      return 'https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-latest-win64-static.zip | https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-latest-win32-static.zip';
     case 'linux':
-      url = 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-32bit-static.tar.xz';
-      break;
+      return 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-32bit-static.tar.xz';
     default:
-      url = 'http://ffmpeg.org/download.html';
-      break;
+      return 'http://ffmpeg.org/download.html';
   }
-  return url;
 }
 
-module.exports = {
-  generateNewSessionID,
-  verifyAuth,
-  genRandomName,
-  getFFmpegVersion,
-  getFFmpegUrl
+type NonNullProperties<T> = {[key in keyof T]-?: NonNullable<T[key]>}
+export type NonNullableProperty<T, K extends keyof T> = T & NonNullProperties<Pick<T, K>>
+
+export function checkPropertyIsNonNull<O, K extends keyof O>(obj: O, key: K): obj is NonNullableProperty<O, K> {
+  return obj[key] != null
 }

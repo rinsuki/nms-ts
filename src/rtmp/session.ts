@@ -14,7 +14,7 @@ import NodeCoreUtils from "../core/utils";
 import NodeFlvSession from "../flv/session";
 import { context } from "../core/ctx";
 import { Logger } from "../core/logger";
-import { RTMPServerConfig } from "./server";
+import { RTMPServerConfig, MediaServerConfigWithRTMP } from "./server";
 import { Socket } from "net";
 
 const N_CHUNK_STREAM = 8;
@@ -171,15 +171,15 @@ export class RTMPSession {
   players = new Set();
   numPlayCache = 0;
 
-  constructor(public config: RTMPServerConfig, public socket: Socket) {
+  constructor(public config: MediaServerConfigWithRTMP, public socket: Socket) {
     this.res = socket;
     this.ip = socket.remoteAddress;
 
-    this.outChunkSize = config.chunk_size ? config.chunk_size : RTMP_CHUNK_SIZE;
-    if (config.ping != null) this.pingTime = config.ping * 1000
-    if (config.ping_timeout != null) this.pingTimeout = config.ping_timeout * 1000
+    this.outChunkSize = config.rtmp.chunk_size ? config.rtmp.chunk_size : RTMP_CHUNK_SIZE;
+    if (config.rtmp.ping != null) this.pingTime = config.rtmp.ping * 1000
+    if (config.rtmp.ping_timeout != null) this.pingTimeout = config.rtmp.ping_timeout * 1000
   
-    this.gopCacheEnable = config.gop_cache
+    this.gopCacheEnable = config.rtmp.gop_cache
     context.sessions.set(this.id, this);
   }
 
@@ -243,7 +243,7 @@ export class RTMPSession {
     this.stop();
   }
 
-  onSocketData(data) {
+  onSocketData(data: Buffer) {
     let bytes = data.length;
     let p = 0;
     let n = 0;
