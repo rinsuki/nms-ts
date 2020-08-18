@@ -3,11 +3,11 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-const URL = require("url");
-const AMF = require("./node_core_amf");
-const Logger = require("./node_core_logger");
-const context = require("./node_core_ctx");
-const NodeCoreUtils = require("./node_core_utils");
+import URL from "url";
+import AMF from "./core_amf";
+import Logger from "./core_logger";
+import context from "./core_ctx";
+import NodeCoreUtils from "./core_utils";
 
 const FlvPacket = {
   create: (payload = null, type = 0, time = 0) => {

@@ -3,7 +3,7 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-const EventEmitter = require('events');
+import EventEmitter from 'events';
 
 let sessions = new Map();
 let publishers = new Map();

@@ -3,9 +3,9 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-const Logger = require('./node_core_logger');
+import Logger from './core_logger';
 
-const Crypto = require('crypto');
+import Crypto from 'crypto';
 
 const MESSAGE_FORMAT_0 = 0;
 const MESSAGE_FORMAT_1 = 1;

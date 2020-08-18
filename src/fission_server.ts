@@ -3,14 +3,14 @@
 //  illuspas[a]msn.com
 //  Copyright (c) 2020 Nodemedia. All rights reserved.
 //
-const Logger = require('./node_core_logger');
+import Logger from './core_logger';
 
-const NodeFissionSession = require('./node_fission_session');
-const context = require('./node_core_ctx');
-const { getFFmpegVersion, getFFmpegUrl } = require('./node_core_utils');
-const fs = require('fs');
-const _ = require('lodash');
-const mkdirp = require('mkdirp');
+import NodeFissionSession from './fission_session';
+import context from './core_ctx';
+import { getFFmpegVersion, getFFmpegUrl } from './core_utils';
+import fs from 'fs';
+import _ from 'lodash';
+import mkdirp from 'mkdirp';
 
 class NodeFissionServer {
   constructor(config) {

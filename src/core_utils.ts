@@ -3,11 +3,11 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-const Crypto = require('crypto');
-const EventEmitter = require('events');
-const { spawn } = require('child_process');
-const readline = require('readline');
-const context = require('./node_core_ctx');
+import Crypto from 'crypto';
+import EventEmitter from 'events';
+import { spawn } from 'child_process';
+import readline from 'readline';
+import context from './core_ctx';
 
 function generateNewSessionID() {
   let sessionID = '';

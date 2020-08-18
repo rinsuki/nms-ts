@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+import chalk from 'chalk';
 
 LOG_TYPES = {
   NONE: 0,

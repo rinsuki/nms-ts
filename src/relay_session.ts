@@ -3,11 +3,11 @@
 //  illuspas[a]gmail.com
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
-const Logger = require('./node_core_logger');
-const NodeCoreUtils = require("./node_core_utils");
+import Logger from './core_logger';
+import NodeCoreUtils from "./core_utils";
 
-const EventEmitter = require('events');
-const { spawn } = require('child_process');
+import EventEmitter from 'events';
+import { spawn } from 'child_process';
 
 const RTSP_TRANSPORT = ['udp', 'tcp', 'udp_multicast', 'http'];
 

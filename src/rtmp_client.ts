@@ -4,12 +4,12 @@
 //  Copyright (c) 2018 Nodemedia. All rights reserved.
 //
 
-const EventEmitter = require('events');
-const Logger = require('./node_core_logger');
-const Crypto = require('crypto');
-const Url = require('url');
-const Net = require('net');
-const AMF = require('./node_core_amf');
+import EventEmitter from 'events';
+import Logger from './core_logger';
+import Crypto from 'crypto';
+import Url from 'url';
+import Net from 'net';
+import AMF from './core_amf';
 
 const FLASHVER = "LNX 9,0,124,2";
 const RTMP_OUT_CHUNK_SIZE = 60000;

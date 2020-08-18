@@ -5,24 +5,24 @@
 //
 
 
-const Fs = require('fs');
-const path = require('path');
-const Http = require('http');
-const Https = require('https');
-const WebSocket = require('ws');
-const Express = require('express');
-const bodyParser = require('body-parser');
-const basicAuth = require('basic-auth-connect');
-const NodeFlvSession = require('./node_flv_session');
+import Fs from 'fs';
+import path from 'path';
+import Http from 'http';
+import Https from 'https';
+import WebSocket from 'ws';
+import Express from 'express';
+import bodyParser from 'body-parser';
+import basicAuth from 'basic-auth-connect';
+import NodeFlvSession from './flv_session';
 const HTTP_PORT = 80;
 const HTTPS_PORT = 443;
 const HTTP_MEDIAROOT = './media';
-const Logger = require('./node_core_logger');
-const context = require('./node_core_ctx');
+import Logger from './core_logger';
+import context from './core_ctx';
 
-const streamsRoute = require('./api/routes/streams');
-const serverRoute = require('./api/routes/server');
-const relayRoute = require('./api/routes/relay');
+import streamsRoute from './api/routes/streams';
+import serverRoute from './api/routes/server';
+import relayRoute from './api/routes/relay';
 
 class NodeHttpServer {
   constructor(config) {
