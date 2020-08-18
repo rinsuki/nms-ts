@@ -1,14 +1,16 @@
 
-class Bitop {
-  constructor(buffer) {
+export class Bitop {
+  buflen: number
+  bufpos = 0
+  bufoff = 0
+  iserro = false
+
+  constructor(public buffer: Buffer) {
     this.buffer = buffer;
     this.buflen = buffer.length;
-    this.bufpos = 0;
-    this.bufoff = 0;
-    this.iserro = false;
   }
 
-  read(n) {
+  read(n: number) {
     let v = 0;
     let d = 0;
     while (n) {
@@ -34,7 +36,7 @@ class Bitop {
     return v;
   }
 
-  look(n) {
+  look(n: number) {
     let p = this.bufpos;
     let o = this.bufoff;
     let v = this.read(n);
@@ -49,5 +51,3 @@ class Bitop {
     return (1 << n) + this.read(n) - 1;
   }
 }
-
-module.exports = Bitop;
